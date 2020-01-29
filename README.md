@@ -1,5 +1,5 @@
 # SCP-E-T
-This game is base on SCP - Containment Breach.
+This game is base on SCP - Containment Breach and the collaborative writing experiment.
 
 Power by henda233
 
