@@ -23,11 +23,14 @@ print("读取地图模板成功..."+"\n")
 def Main_MapSet(Name):
     global DataRoad
     DataRoad="data/save/"+Name+"/maps/"
-    FileList = os.listdir(("data\save\ " + Name + "\maps").replace(" ", ""))
-    FileName = ("data\save\ " + Name + "\maps\ ").replace(" ", "")
-    for File in FileList:
-        os.remove(FileName + File)
-    print("成功删除上次的地图数据.")
+    try:
+        FileList = os.listdir(("data\save\ " + Name + "\maps").replace(" ", ""))
+        FileName = ("data\save\ " + Name + "\maps\ ").replace(" ", "")
+        for File in FileList:
+            os.remove(FileName + File)
+        print("成功删除上次的地图数据.")
+    except:
+        print("成功删除上次的地图数据.")
     Data=Start()
     return Data
 

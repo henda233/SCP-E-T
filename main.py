@@ -51,6 +51,13 @@ Speed=0
 LV=1
 XP=0
 SV=0
+#装备
+ArmyHead=[0,"None"]#防御值 名称
+ArmyBody=[0,"None"]
+ArmyHand=[0,"None"]
+ArmyFoot=[0,"None"]
+#武器
+Weapon=[0,0,"None"]#0：类型 0近战 1远程 0:伤害  "None"武器名
 Item=[]
 PlayerX=0
 PlayerY=0
@@ -217,6 +224,8 @@ def Start():
     LoadMap(Maps,0)
     #载入地图模型
     PrintMap(0)
+    #载入特殊玩家数据
+    InGameLoadPlayerData()
     #载入玩家操控
     PlayerContral()
 
@@ -294,9 +303,6 @@ def PlayerMove(Dir):
         CheckMove(AimX,AimY)
     Times+=1
 
-def PlayerBackage():
-    pass
-
 
 def InGameMain():
     #显示文字
@@ -331,7 +337,8 @@ def PlayerContral():
                 if event.key==K_LEFT:
                     PlayerMove("LEFT")
                 if event.key==K_TAB:
-                    PlayerBackage()
+                    backage.back_main(Name,Scr)
+                    InGameLoadPlayerData()
                 if event.key==K_ESCAPE:
                     InGameMain()
 
@@ -353,20 +360,55 @@ def LoadPlayerData(Number,FileList):
     File=open(SaveFilePath+Name+"/player.dat","r")
     #处理普通数据
     Data=File.readlines()
-    print(Data)
-    LV=int(Data[1].strip("\n"))
+    LV=int(Data[2].strip("\n"))
     XP=int(Data[3].strip("\n"))
     SV=int(Data[4].strip("\n"))
-    Power=int(Data[6].strip("\n"))
-    Speed=int(Data[8].strip("\n"))
+    Power=int(Data[5].strip("\n"))
+    Speed=int(Data[6].strip("\n"))
     #读取物品
     File=open(SaveFilePath+Name+"/item.dat","r")
     Item=File.readlines()
     print("数据读取完毕。")
     Start()
 
-
-
+#单独读取HP，装备防御，武器并且更改速度
+def InGameLoadPlayerData():
+    global HP
+    global ArmyHead
+    global ArmyBody
+    global ArmyHand
+    global ArmyFoot
+    global Weapon
+    global Speed
+    #读取HP与Speed
+    File=open("data/save/"+Name+"/player.dat","r")
+    Data=File.readlines()
+    HP=int(Data[1].strip())
+    Speed=int(Data[6].strip())
+    #读取武器
+    File=open("data/save/"+Name+"/weapon.dat","r")
+    Data=File.readlines()
+    Weapon[0]=int(Data[0].strip())#类型
+    Weapon[1]=int(Data[1].strip())#伤害
+    Weapon[2]=Data[2].strip()#名称
+    print("武器读取完毕。")
+    #读取装备防御
+    #判断是否有装备
+    File=open("data/save/"+Name+"/army.dat","r")
+    Data=File.readlines()
+    if len(Data)==0:
+        print("没有装备，读取默认数值。")
+    else:
+        #读取
+        ArmyHead[0]=int(Data[0].strip())
+        ArmyHead[1]=Data[1].strip()
+        ArmyBody[0]=int(Data[2].strip())
+        ArmyBody[1]=Data[3].strip()
+        ArmyHand[0]=int(Data[4].strip())
+        ArmyHand[1]=Data[5].strip()
+        ArmyFoot[0]=int(Data[6].strip())
+        ArmyFoot[1]=Data[7].strip()
+        print("装备读取完毕。")
 def LoadGame():
     global Scr
     #搜索玩家目录
