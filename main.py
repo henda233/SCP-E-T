@@ -9,7 +9,7 @@ import time
 from random import randint
 import backage
 from threading import Thread
-
+import skill_man
 #窗口数据
 Scr_W=1200
 Scr_L=810
@@ -38,7 +38,7 @@ print("图片载入完成")
 MainFont=pygame.font.SysFont('SimHei',40)
 ButtonFont=pygame.font.SysFont('SimHei',24)
 NormalFont=pygame.font.SysFont('SimHei',24)
-
+Font=pygame.font.SysFont("SimHei",16)
 #设置颜色
 Wcolor=(255,255,255)
 Black=(0,0,0)
@@ -211,6 +211,28 @@ def LoadMap(Maps,Mode):
     MapCode=Data_4[0].replace("\n","")
     print("地图数据载入成功。")
 
+def TipsShow():
+    #读取文件
+    File=open("text_data/tips.txt","r")
+    Tips=File.readlines()
+    File.close()
+    #随机选择
+    C=randint(0,len(Tips)-1)
+    #显示
+    Text=Font.render("Tips: "+Tips[C],True,Wcolor)
+    Scr.blit(Text,(Scr_W/2-25,Scr_L/2+50))
+
+def Load():
+    Scr.fill(Black)
+    LoadText = Font.render("载入中...", True, (255, 255, 255))
+    Scr.blit(LoadText, (Scr_W/2,Scr_L/2))
+    TipsShow()
+    pygame.display.update()
+    time.sleep(randint(5,15))
+    Scr.fill(Black)
+    LoadText = Font.render("按 移动键 继续...", True, (255, 255, 255))
+    Scr.blit(LoadText, (Scr_W/2,Scr_L/2))
+    pygame.display.update()
 
 def Start():
     global Scr
@@ -226,6 +248,10 @@ def Start():
     PrintMap(0)
     #载入特殊玩家数据
     InGameLoadPlayerData()
+    #确定身份
+    skill_man.MainStart_PlayerSkillC(Name,Scr)
+    #载入载入画面
+    Load()
     #载入玩家操控
     PlayerContral()
 

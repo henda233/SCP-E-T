@@ -8,7 +8,7 @@ LV=1
 XP=0
 SV=100
 Power=0
-Speed=0
+Speed=1
 
 
 def SavePlayer():
