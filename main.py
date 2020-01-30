@@ -10,6 +10,7 @@ from random import randint
 import backage
 from threading import Thread
 import skill_man
+import setthing
 #窗口数据
 Scr_W=1200
 Scr_L=810
@@ -27,12 +28,19 @@ Wall=pygame.image.load("img/wall.jpg")
 PlayerImg=pygame.image.load("img/man.jpg")
 DoorImg=pygame.image.load("img/door.jpg")
 ModeDoorImg=pygame.image.load("img/modedoor.JPG")
+PushCarImg=pygame.image.load("img/pushcar.jpg")
+DeadBodyImg=pygame.image.load("img/deadbody.jpg")
+FirstAidImg=pygame.image.load("img/aid.jpg")
+BuyBoxImg=pygame.image.load("img/buybox.jpg")
 #图片处理
 Wall=pygame.transform.scale(Wall,(Game_Size,Game_Size))
 PlayerImg=pygame.transform.scale(PlayerImg,(Game_Size,Game_Size))
 DoorImg=pygame.transform.scale(DoorImg,(Game_Size,Game_Size))
 ModeDoorImg=pygame.transform.scale(ModeDoorImg,(Game_Size,Game_Size))
-
+FirstAidImg=pygame.transform.scale(FirstAidImg,(Game_Size,Game_Size))
+PushCarImg=pygame.transform.scale(PushCarImg,(Game_Size,Game_Size))
+DeadBodyImg=pygame.transform.scale(DeadBodyImg,(Game_Size,Game_Size))
+BuyBoxImg=pygame.transform.scale(BuyBoxImg,(Game_Size,Game_Size))
 print("图片载入完成")
 #设置字体
 MainFont=pygame.font.SysFont('SimHei',40)
@@ -51,6 +59,7 @@ Speed=0
 LV=1
 XP=0
 SV=0
+Food=1000
 #装备
 ArmyHead=[0,"None"]#防御值 名称
 ArmyBody=[0,"None"]
@@ -74,9 +83,15 @@ MapCode=""
 UpMap=""
 NextMap=""
 MapMode=""
+PassedMap=[]
 Door1XY=[0,0]
 Door2XY=[0,0]
 ModeDoorXY=[0,0]
+DeadBodys=[[0,0,0],[0,0,0]]
+PushCar=[0,0,0]
+FisrtAid=[0,0,0]
+#        x  y  物品数量
+BuyBox=[0,0]
 
 
 
@@ -118,6 +133,46 @@ def GetPlayerXY(Mode=0):
         else:
             PlayerX = Door1XY[0]+1
             PlayerY = Door1XY[1]
+
+
+def PrintPlayerMes():
+    HPText=ButtonFont.render("HP:"+str(HP),True,Wcolor)
+    TimesText=ButtonFont.render("生存回合数:"+str(Times),True,Wcolor)
+    PosText=ButtonFont.render("位置:"+MapName,True,Wcolor)
+    FootText=ButtonFont.render("饥饿度："+str(Food),True,Wcolor)
+
+    Scr.blit(HPText,(Scr_W-200,0))
+    Scr.blit(TimesText,(Scr_W-200,50))
+    Scr.blit(PosText, (Scr_W - 200, 100))
+    Scr.blit(FootText,(Scr_W - 200, 150))
+
+def PrintSetThings():
+    #尸体显示
+    #判断尸体数量
+    BodyNumber=0
+    if DeadBodys[1][0]!=0:
+        BodyNumber=2
+    elif DeadBodys[0][0]!=0:
+        BodyNumber=1
+    elif DeadBodys[0][0]==0:
+        BodyNumber=0
+    #尸体存在检测
+    if BodyNumber==1:
+        Scr.blit(DeadBodyImg,(DeadBodys[0][0]*Game_Size,DeadBodys[0][1]*Game_Size))
+    elif BodyNumber==2:
+        Scr.blit(DeadBodyImg, (DeadBodys[0][0] * Game_Size, DeadBodys[0][1] * Game_Size))
+        Scr.blit(DeadBodyImg, (DeadBodys[1][0] * Game_Size, DeadBodys[1][1] * Game_Size))
+    #推车
+    if PushCar[0]!=0:
+        Scr.blit(PushCarImg,(PushCar[0]*Game_Size,PushCar[1]*Game_Size))
+    #医疗
+    if FisrtAid[0]!=0:
+        Scr.blit(FirstAidImg,(FisrtAid[0]*Game_Size,FisrtAid[1]*Game_Size))
+    #贩卖机
+    if BuyBox[0]!=0:
+        Scr.blit(BuyBoxImg,(BuyBox[0]*Game_Size,BuyBox[1]*Game_Size))
+
+
 
 
 
@@ -172,12 +227,9 @@ def PrintMap(Mode):#mode 0 first 1 move to new map 2 loop
         # 打印玩家
         Scr.blit(PlayerImg, (PlayerX * Game_Size, PlayerY * Game_Size))
     #显示玩家信息
-    HPText=ButtonFont.render("HP:"+str(HP),True,Wcolor)
-    TimesText=ButtonFont.render("生存回合数:"+str(Times),True,Wcolor)
-    PosText=ButtonFont.render("位置:"+MapName,True,Wcolor)
-    Scr.blit(HPText,(Scr_W-250,0))
-    Scr.blit(TimesText,(Scr_W-250,50))
-    Scr.blit(PosText, (Scr_W - 250, 100))
+    PrintPlayerMes()
+    #显示特殊
+    PrintSetThings()
     pygame.display.update()
 
 
@@ -192,6 +244,10 @@ def LoadMap(Maps,Mode):
     global MapMode
     global Data
     global Scr
+    global DeadBodys
+    global PushCar
+    global FisrtAid
+    global BuyBox
     #分开模式：0--》第一次 1-->循环
     if Mode==0:
         #随机选择地图
@@ -209,6 +265,10 @@ def LoadMap(Maps,Mode):
     MapMode=Data_3[1].replace("\n","")
     Data_4=Data_3[0].split("%")
     MapCode=Data_4[0].replace("\n","")
+    #特殊物品生成
+    DeadBodys,PushCar,FisrtAid,BuyBox=setthing.MainStart_SetThing(MapName,PassedMap)
+    print("特殊物品生成中...")
+    print(DeadBodys,PushCar,FisrtAid,BuyBox)
     print("地图数据载入成功。")
 
 def TipsShow():
@@ -244,20 +304,28 @@ def Start():
     Maps=mapset.Main_MapSet(Name)
     #载入地图
     LoadMap(Maps,0)
-    #载入地图模型
-    PrintMap(0)
     #载入特殊玩家数据
     InGameLoadPlayerData()
     #确定身份
     skill_man.MainStart_PlayerSkillC(Name,Scr)
+    #停止音乐
+    pygame.mixer_music.stop()
     #载入载入画面
     Load()
+    #载入地图模型
+    PrintMap(0)
     #载入玩家操控
     PlayerContral()
+
+#添加到已经经过的地图
+def AddPassedMaps(Map):
+    global PassedMap
+    PassedMap.append(Map)
 
 def Door(Number):
     global Scr
     global Dir
+    #添加到已经经过的地图list中
     #提示载入
     Scr.fill(Black)
     LoadText=ButtonFont.render("载入新地图中...",True,Wcolor)
@@ -274,12 +342,57 @@ def Door(Number):
     #到目录寻找对应的地图数据
     File=open("data/save/"+Name+"/maps/"+Maps+".ini","r")
     Data=File.read()
+    AddPassedMaps(MapName)
     LoadMap(Data,1)
     PrintMap(1)
 
 
+def GetThings_Item():
+
+
+#获得物品 Kind:1尸体1 2尸体2 3推车 4医疗 5贩卖机 6看搜索物品
+def GetThings_FromThing(Kind):
+    global DeadBodys
+    global PushCar
+    global FisrtAid
+    global BuyBox
+    if Kind==1:
+
+
 
 #玩家操作
+
+
+def EDone(EDir):
+    #获得目标坐标
+    global EAimX
+    global EAimY
+    EAimX=0
+    EAimY=0
+    if EDir=="UP":
+        EAimY=PlayerY-1
+        EAimX=PlayerX
+    elif EDir=="DOWN":
+        EAimY=PlayerY+1
+        EAimX=PlayerX
+    elif EDir=="LEFT":
+        EAimY=PlayerY
+        EAimX=PlayerX-1
+    else:
+        EAimY=PlayerY
+        EAimX=PlayerX+1
+    #特殊物品检测
+    if EAimX==DeadBodys[0][0] and EAimY == DeadBodys[0][1]:
+        GetThings_FromThing(1)
+    elif EAimX==DeadBodys[1][0] and EAimY== DeadBodys[1][1]:
+        GetThings_FromThing(2)
+    elif EAimX==PushCar[0] and EAimY== PushCar[1]:
+        GetThings_FromThing(3)
+    elif EAimX==FisrtAid[0] and EAimY== FisrtAid[1]:
+        GetThings_FromThing(4)
+    elif EAimX==BuyBox[0] and EAimY== BuyBox[1]:
+        GetThings_FromThing(5)
+    #可搜索
 
 #移动检测：墙 门 mode 门
 def CheckMove(DAimX,DAimY):
@@ -303,6 +416,8 @@ def CheckMove(DAimX,DAimY):
             Door(1)
         elif AimX==Door2XY[0] and AimY==Door2XY[1]:
             Door(2)
+    if Food<=0:
+        print("玩家死亡。")
 
 
 #人物移动
@@ -311,6 +426,7 @@ def PlayerMove(Dir):
     global PlayerX
     global Scr
     global Times
+    global Food
     if Dir=="UP":
         AimX=PlayerX
         AimY=PlayerY-1
@@ -328,6 +444,7 @@ def PlayerMove(Dir):
         AimY=PlayerY
         CheckMove(AimX,AimY)
     Times+=1
+    Food-=2
 
 
 def InGameMain():
@@ -485,14 +602,9 @@ def PlayMusic():
     pygame.mixer.init()
     pygame.mixer_music.set_volume(0.2)
     #随机选择&loop播放
-    while 1:
-        N=randint(0,len(MusicNameList)-1)
-        pygame.mixer_music.load(MusicFilePath+MusicNameList[N])
-        pygame.mixer_music.play(start=0.0)
-        time.sleep(300)
-        pygame.mixer_music.stop()
-
-
+    N=randint(0,len(MusicNameList)-1)
+    pygame.mixer_music.load(MusicFilePath+MusicNameList[N])
+    pygame.mixer_music.play(start=0.0)
 
 
 
@@ -547,7 +659,4 @@ def main():
                     print("exit")
                     sys.exit()
         pygame.display.update()
-
-
 main()
-
