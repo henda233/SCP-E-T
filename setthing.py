@@ -5,7 +5,6 @@ PushCar=[0,0,0]
 FisrtAid=[0,0,0]
 BuyBox=[0,0,0]
 
-
 def SetBox():
     global BuyBox
     #随机几率
@@ -108,8 +107,12 @@ def MainStart_SetThing(NowMap,PassedMaps):
         return [[0,0,0],[0,0,0]],[0,0,0],[0,0,0],[0,0,0]
 
     else:
-        SetDeadBody()
-        SetPushCar()
-        SetFisrtAid()
+        c=randint(1,4)
+        if c==1:
+            SetDeadBody()
+        elif c==2:
+            SetPushCar()
+        elif c==3:
+            SetFisrtAid()
         SetBox()
         return DeadBodys, PushCar, FisrtAid, BuyBox

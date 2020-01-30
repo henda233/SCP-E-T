@@ -1,6 +1,10 @@
 from os import mkdir
+import pygame
+from pygame.locals import *
+import msvcrt
 
-
+pygame.init()
+Font=pygame.font.SysFont("SimHei",16)
 #玩家数据
 Name=""
 HP=100
@@ -37,14 +41,5 @@ def SavePlayer():
 
 def Main_CrtPlayer():
     global Name
-    print("创建角色：")
-    File=open("text_data/crtplayer.txt","r")
-    Text=File.read()
-    Data=input(Text)
-    if Data=="":
-        print("请输入合法的名称！")
-        Main_CrtPlayer()
-    else:
-        Name=Data
-        SavePlayer()
-        print("返回游戏")
+    Name="Player"
+    SavePlayer()

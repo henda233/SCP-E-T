@@ -11,6 +11,7 @@ import backage
 from threading import Thread
 import skill_man
 import setthing
+import admin
 #窗口数据
 Scr_W=1200
 Scr_L=810
@@ -141,10 +142,10 @@ def PrintPlayerMes():
     PosText=ButtonFont.render("位置:"+MapName,True,Wcolor)
     FootText=ButtonFont.render("饥饿度："+str(Food),True,Wcolor)
 
-    Scr.blit(HPText,(Scr_W-200,0))
-    Scr.blit(TimesText,(Scr_W-200,50))
-    Scr.blit(PosText, (Scr_W - 200, 100))
-    Scr.blit(FootText,(Scr_W - 200, 150))
+    Scr.blit(HPText,(Scr_W-300,0))
+    Scr.blit(TimesText,(Scr_W-300,50))
+    Scr.blit(PosText, (Scr_W - 300, 100))
+    Scr.blit(FootText,(Scr_W - 300, 150))
 
 def PrintSetThings():
     #尸体显示
@@ -347,17 +348,95 @@ def Door(Number):
     PrintMap(1)
 
 
-def GetThings_Item():
-
 
 #获得物品 Kind:1尸体1 2尸体2 3推车 4医疗 5贩卖机 6看搜索物品
 def GetThings_FromThing(Kind):
+    global Item
     global DeadBodys
     global PushCar
     global FisrtAid
     global BuyBox
+    global GetItem
+    global i
+    # 读取全物品
+    File = open("data/items/item.dat", "r")
+    AllItemText = File.readlines()
+    File.close()
+    GetItem=[]
     if Kind==1:
-
+        #读取文件
+        File=open("data/items/get_item/deadbody/item.txt","r")
+        DeadBodyItems=File.readlines()
+        File.close()
+        while DeadBodys[0][2]>0:
+            #随机获得物品
+            C=randint(0,len(DeadBodyItems)-1)
+            GetItem.append(DeadBodyItems[C].strip())
+            DeadBodys[0][2]-=1
+    elif Kind==2:
+        #读取文件
+        File=open("data/items/get_item/deadbody/item.txt","r")
+        DeadBodyItems=File.readlines()
+        File.close()
+        while DeadBodys[1][2]>0:
+            #随机获得物品
+            C=randint(0,len(DeadBodyItems)-1)
+            GetItem.append(DeadBodyItems[C].strip())
+            DeadBodys[1][2]-=1
+    elif Kind==3:
+        #读取文件
+        File=open("data/items/get_item/pushcar/item.txt","r")
+        PushCarItems=File.readlines()
+        File.close()
+        while PushCar[2]>0:
+            #随机获得物品
+            C=randint(0,len(PushCarItems)-1)
+            GetItem.append(PushCarItems[C].strip())
+            PushCar[2]-=1
+    elif Kind==4:
+        #读取文件
+        File=open("data/items/get_item/aid/item.txt","r")
+        FisrtAidItems=File.readlines()
+        File.close()
+        while FisrtAid[2]>0:
+            #随机获得物品
+            C=randint(0,len(FisrtAidItems)-1)
+            GetItem.append(FisrtAidItems[C].strip())
+            FisrtAid[2]-=1
+    elif Kind==5:
+        #读取文件
+        File=open("data/items/get_item/buybox/item.txt","r")
+        BuyBoxItems=File.readlines()
+        File.close()
+        while FisrtAid[2]>0:
+            #随机获得物品
+            C=randint(0,len(BuyBoxItems)-1)
+            GetItem.append(BuyBoxItems[C].strip())
+            BuyBox[2]-=1
+    print("搜索不到更多的东西了。")
+    #GetItem int AllItem str
+    #添加到玩家背包
+    for j in GetItem:
+        Item.append(int(j.strip()))
+    File = open("data/save/" + Name + "/item.dat", "w")
+    for i in range(len(Item)-1):
+        File.writelines(str(Item[i]).strip())
+    File.close()
+    #数字转为文字
+    TextItem=[]
+    for Number in GetItem:
+        TextItem.append(AllItemText[int(Number)].strip())
+    #显示
+    pygame.draw.rect(Scr,(0,0,0),((400,300),(400,300)))
+    TextX=432
+    TextY=332
+    for i in range(len(TextItem)):
+        Text=NormalFont.render("你找到了："+TextItem[i],True,Wcolor)
+        Scr.blit(Text,(TextX,TextY+i*64))
+    if len(GetItem)==0:
+        Text=NormalFont.render("你什么也没有找到。",True,Wcolor)
+        Scr.blit(Text,(TextX,TextY))
+    pygame.display.update()
 
 
 #玩家操作
@@ -464,6 +543,27 @@ def InGameMain():
                 if event.key==K_2:
                     sys.exit()
 
+
+def EDirDone():
+    #显示
+    Text=NormalFont.render("搜索哪里？[esc退出]",True,Wcolor)
+    Scr.blit(Text,(PlayerX*Game_Size,PlayerY*Game_Size))
+    pygame.display.update()
+    while 1:
+        for event in pygame.event.get():
+            if event.type==KEYDOWN:
+                if event.key==K_UP:
+                    EDone("UP")
+                if event.key==K_DOWN:
+                    EDone("DOWN")
+                if event.key==K_RIGHT:
+                    EDone("RIGHT")
+                if event.key==K_LEFT:
+                    EDone("LEFT")
+                if event.key==K_ESCAPE:
+                    PrintMap(2)
+                    return
+
 #操作主函数
 def PlayerContral():
     global Scr
@@ -482,6 +582,10 @@ def PlayerContral():
                 if event.key==K_TAB:
                     backage.back_main(Name,Scr)
                     InGameLoadPlayerData()
+                if event.key==K_e:
+                    EDirDone()
+                if event.key==K_p:
+                    admin.Main_Admin()
                 if event.key==K_ESCAPE:
                     InGameMain()
 
@@ -585,8 +689,6 @@ def StartGame():
     global Scr
     #创建角色
     print("start game")
-    StartText = ButtonFont.render("请查看控制台", True, Wcolor)
-    Scr.blit(StartText, (0, 170))
     pygame.display.update()
     crtplayer.Main_CrtPlayer()
     Start()
