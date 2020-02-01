@@ -1,4 +1,4 @@
-# SCP-E-T
+# SCP-E-T 【此项目已经停止开发。最新重置项目：SCP-E】
 This game is base on SCP - Containment Breach and the collaborative writing experiment.
 
 Power by henda233
